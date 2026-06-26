@@ -95,4 +95,4 @@ async def link_account(interaction: Interaction, link: str):
 
 
 if __name__ == "__main__":
-    client.run(os.environ["BOT_TOKEN"])
+    client.run(os.environ["DISCORD_TOKEN"])
