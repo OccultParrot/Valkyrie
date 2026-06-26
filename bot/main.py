@@ -15,7 +15,7 @@ class Bot(Client):
 
     async def setup_hook(self) -> None:
         print("Syncing Command Tree...")
-        await self.tree.sync()
+        await self.tree.sync(guild=discord.Object(id=1517273639324614707))
 
 
 client = Bot()
