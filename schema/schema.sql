@@ -1,0 +1,7 @@
+DROP TABLE users IF EXISTS;
+
+CREATE TABLE users(
+  id SERIAL PUBLIC KEY,
+  discord_id BIGINT UNIQUE NOT NULL,
+  steam_id BIGINT UNIQUE NOT NULL
+);
