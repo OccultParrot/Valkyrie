@@ -12,14 +12,14 @@ class Bot(Client):
 
         self.tree = app_commands.CommandTree(self)
 
-    def setup_hook(self) -> None:
+    async def setup_hook(self) -> None:
         print("Syncing Command Tree...")
-        self.tree.sync()
+        await self.tree.sync()
 
 client = Bot()
 
 @client.event
-def on_ready():
+async def on_ready():
     print(f"Logged in as {client.user} | {client.user.id}")
 
 
@@ -61,7 +61,7 @@ async def link_account(link: str, interaction: Interaction):
     await interaction.response.defer()
     steam_id: int
     try:
-        s = link.split()[3]
+        s = link.split("/")[3]
         steam_id = int(s)
     except IndexError or ValueError as e:
         print(f"Invalid link {link} from {interaction.user.name}")
