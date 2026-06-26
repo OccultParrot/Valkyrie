@@ -92,3 +92,7 @@ async def link_account(interaction: Interaction, link: str):
     print(f"Linked steam account {steam_id} -> {interaction.user.id}")
     response = await interaction.original_response()
     await response.edit(content=f"Successfully linked steam account {steam_id}!")
+
+
+if __name__ == "__main__":
+    client.run(os.environ["BOT_TOKEN"])
