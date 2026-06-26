@@ -24,7 +24,7 @@ def get_session():
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-@app.post("/users/")
+@app.post("/api/users/")
 def create_user(user: User, session: SessionDep):
     session.add(user)
     session.commit()
@@ -32,13 +32,13 @@ def create_user(user: User, session: SessionDep):
     return user
 
 
-@app.get("/users/")
+@app.get("/api/users/")
 def get_users(session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100) -> Sequence[User]:
     users = session.exec(select(User).offset(offset).limit(limit)).all()
     return users
 
 
-@app.get("/users/{user_id}")
+@app.get("/api/users/{user_id}")
 def get_user(user_id: int, session: SessionDep) -> User:
     user = cast(User | None, session.get(User, user_id))
     if not user:
@@ -46,7 +46,7 @@ def get_user(user_id: int, session: SessionDep) -> User:
     return user
 
 
-@app.delete("/users/{user_id}")
+@app.delete("/api/users/{user_id}")
 def delete_user(user_id: int, session: SessionDep):
     user = cast(User | None, session.get(User, user_id))
     if not user:
