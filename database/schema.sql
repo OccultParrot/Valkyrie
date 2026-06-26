@@ -3,6 +3,7 @@ CREATE TABLE users(
   id SERIAL PRIMARY KEY,
   discord_id BIGINT UNIQUE NOT NULL,
   steam_id BIGINT UNIQUE NOT NULL,
+  steam_name TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

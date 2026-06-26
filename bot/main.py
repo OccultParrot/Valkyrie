@@ -81,6 +81,12 @@ async def link_account(interaction: Interaction, link: str):
             "discord_id": interaction.user.id
         })
 
+    if response.status_code == 404:
+        print(f"No user of steam ID {steam_id}")
+        response = await interaction.original_response()
+        await response.edit(content=f"No user with steam ID: {steam_id}")
+        return 
+
     if response.status_code != 200:
         response = await interaction.original_response()
         await response.edit(content=f"Failed to link steam account {steam_id}")

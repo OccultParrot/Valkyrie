@@ -1,6 +1,7 @@
 import os
 from typing import Annotated, Sequence, cast
 
+import requests
 import dotenv
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.params import Query
@@ -26,6 +27,12 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 @app.post("/api/users/")
 def create_user(user: User, session: SessionDep):
+    user_name = get_steam_user(user.steam_id)
+    if user_name is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.steam_name = user_name
+
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -54,3 +61,22 @@ def delete_user(user_id: int, session: SessionDep):
     session.delete(user)
     session.commit()
     return {"ok": True}
+
+
+def get_steam_user(steam_id: int) -> str | None:
+    response = requests.get(
+        "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
+        params={
+            "key": os.environ["STEAM_API_KEY"],
+            "steamids": steam_id
+        }
+    )
+
+    data = response.json()
+    players = data["response"]["players"]
+
+    if not players:
+        print(f"User has no steam id: {steam_id}")
+        return None
+
+    return players[0]["personaname"]
