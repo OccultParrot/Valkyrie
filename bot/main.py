@@ -5,6 +5,7 @@ import requests
 import dotenv
 from discord import Client, app_commands, Intents, Interaction
 
+
 class Bot(Client):
     def __init__(self):
         intents = Intents.all()
@@ -16,17 +17,18 @@ class Bot(Client):
         print("Syncing Command Tree...")
         await self.tree.sync()
 
+
 client = Bot()
+
 
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user} | {client.user.id}")
 
 
-
 @client.tree.command(name="send-message", description="Send a message as the bot")
 @app_commands.describe(message="The message to send")
-async def send_message(message: str, interaction: Interaction):
+async def send_message(interaction: Interaction, message: str):
     """
     Sends the users message from the bot so that the owners (Chebe & Sinna) can send messages as the bot.
     :param message: The message to send as the bot
@@ -35,6 +37,7 @@ async def send_message(message: str, interaction: Interaction):
     channel = interaction.channel
     await channel.send(message)
     await interaction.response.send_message("Message sent!", ephemeral=True)
+
 
 @client.tree.command(name="send-button", description="Send a set of buttons as the bot")
 async def send_button(interaction: Interaction):
@@ -48,9 +51,10 @@ async def send_button(interaction: Interaction):
     await channel.send("Not done yet lol")
     await interaction.response.send_message("Button send!", ephemeral=True)
 
+
 @client.tree.command(name="link", description="Link your steam account to the server")
 @app_commands.describe(link="The link to your steam account")
-async def link_account(link: str, interaction: Interaction):
+async def link_account(interaction: Interaction, link: str):
     """
     Parses the given link and adds a user with the /users/ endpoint on our API
     Example link: https://steamcommunity.com/profiles/76561199214551282/
@@ -66,7 +70,8 @@ async def link_account(link: str, interaction: Interaction):
     except IndexError or ValueError as e:
         print(f"Invalid link {link} from {interaction.user.name}")
         response = await interaction.original_response()
-        await response.edit(content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/**XXXXXXXXXXXXXX**/")
+        await response.edit(
+            content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/**XXXXXXXXXXXXXX**/")
         return
 
     response = requests.post(
@@ -87,4 +92,3 @@ async def link_account(link: str, interaction: Interaction):
     print(f"Linked steam account {steam_id} -> {interaction.user.id}")
     response = await interaction.original_response()
     await response.edit(content=f"Successfully linked steam account {steam_id}!")
-
