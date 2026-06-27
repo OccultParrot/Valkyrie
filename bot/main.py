@@ -75,7 +75,7 @@ async def link_account(interaction: Interaction, link: str):
         return
 
     response = requests.post(
-        os.environ["BACKEND_URL"] + "/users/",
+        os.environ["BACKEND_URL"] + "/api/users/",
         json={
             "steam_id": steam_id,
             "discord_id": interaction.user.id
