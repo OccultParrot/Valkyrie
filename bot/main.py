@@ -52,21 +52,28 @@ async def send_button(interaction: Interaction):
     await interaction.response.send_message("Button send!", ephemeral=True)
 
 
-@client.tree.command(name="link", description="Link your steam account to the server")
-@app_commands.describe(link="The link to your steam account")
-async def link_account(interaction: Interaction, link: str):
+@client.tree.command(name="link",
+                     description="Link your steam account to the server using either your ID or your profile link")
+@app_commands.describe(link="The link to your steam account", steam_id="The steam account ID")
+async def link_account(interaction: Interaction, link: str = None, steam_id: int = None):
     """
     Parses the given link and adds a user with the /users/ endpoint on our API
     Example link: https://steamcommunity.com/profiles/76561199214551282/
     and the steam ID is the last section AFTER profiles: 76561199214551282
     :param link: The link to your steam account
+    :param steam_id: The steam ID
     :param interaction: The discord interaction
     """
+
+    if link is None and steam_id is None:
+        await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID")
+
     await interaction.response.defer()
     steam_id: int
     try:
-        s = link.split("/")[4]
-        steam_id = int(s)
+        if steam_id is None:
+            s = link.split("/")[4]
+            steam_id = int(s)
     except (IndexError, ValueError) as e:
         print(f"Invalid link {link} from {interaction.user.name}")
         response = await interaction.original_response()
