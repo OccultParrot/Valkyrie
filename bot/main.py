@@ -82,6 +82,8 @@ async def link_account(interaction: Interaction, link: str):
         })
 
     if response.status_code == 404:
+        print(response.text)
+        print(response.json())
         print(f"No user of steam ID {steam_id}")
         response = await interaction.original_response()
         await response.edit(content=f"No user with steam ID: {steam_id}")
