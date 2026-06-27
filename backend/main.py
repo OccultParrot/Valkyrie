@@ -73,6 +73,9 @@ def get_steam_user(steam_id: int) -> str | None:
         }
     )
 
+    print(f"Steam API status: {response.status_code}")
+    print(f"Steam API response: {response.text}")  # Add this temporarily
+
     data = response.json()
     print(data)
     players = data["response"]["players"]
