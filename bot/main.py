@@ -104,7 +104,7 @@ async def link_account(interaction: Interaction, link: str = None, steam_id: int
 
     data = response.json()
 
-    await interaction.user.add_roles(discord.Object(id=1520180800317030481))
+    await interaction.user.add_roles(discord.Object(id=1517323532621578402))
     await interaction.user.edit(nick=data["steam_name"])
 
     print(f"Linked steam account {steam_id} -> {interaction.user.id}")
