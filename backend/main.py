@@ -31,7 +31,7 @@ def create_user(user: User, session: SessionDep):
     if user_name is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    existing_user = session.get(User, user.discord_id)
+    existing_user = session.exec(select(User).where(User.discord_id == user.discord_id)).first()
     if existing_user:
         existing_user.steam_id = user.steam_id
         existing_user.steam_name = user_name
