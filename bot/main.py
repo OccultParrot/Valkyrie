@@ -65,9 +65,9 @@ async def link_account(interaction: Interaction, link: str):
     await interaction.response.defer()
     steam_id: int
     try:
-        s = link.split("/")[3]
+        s = link.split("/")[4]
         steam_id = int(s)
-    except IndexError or ValueError as e:
+    except (IndexError, ValueError) as e:
         print(f"Invalid link {link} from {interaction.user.name}")
         response = await interaction.original_response()
         await response.edit(
@@ -85,7 +85,7 @@ async def link_account(interaction: Interaction, link: str):
         print(f"No user of steam ID {steam_id}")
         response = await interaction.original_response()
         await response.edit(content=f"No user with steam ID: {steam_id}")
-        return 
+        return
 
     if response.status_code != 200:
         response = await interaction.original_response()
@@ -93,7 +93,10 @@ async def link_account(interaction: Interaction, link: str):
         print(f"Failed to link steam account {steam_id}")
         return
 
+    data = response.json()
+
     await interaction.user.add_roles(discord.Object(id=1520180800317030481))
+    await interaction.user.edit(nick=data["steam_name"])
 
     print(f"Linked steam account {steam_id} -> {interaction.user.id}")
     response = await interaction.original_response()
