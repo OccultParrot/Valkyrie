@@ -29,6 +29,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 def create_user(user: User, session: SessionDep):
     user_name = get_steam_user(user.steam_id)
     if user_name is None:
+        print(user_name)
         raise HTTPException(status_code=404, detail="User not found")
 
     user.steam_name = user_name
@@ -73,6 +74,7 @@ def get_steam_user(steam_id: int) -> str | None:
     )
 
     data = response.json()
+    print(data)
     players = data["response"]["players"]
 
     if not players:
