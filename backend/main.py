@@ -29,15 +29,20 @@ SessionDep = Annotated[Session, Depends(get_session)]
 def create_user(user: User, session: SessionDep):
     user_name = get_steam_user(user.steam_id)
     if user_name is None:
-        print(user_name)
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.steam_name = user_name
+    existing_user = session.get(User, user.discord_id)
+    if existing_user:
+        existing_user.steam_id = user.steam_id
+        existing_user.steam_name = user_name
+        session.add(existing_user)
+    else:
+        user.steam_name = user_name
+        session.add(user)
 
-    session.add(user)
     session.commit()
-    session.refresh(user)
-    return user
+    session.refresh(existing_user if existing_user else user)
+    return existing_user if existing_user else user
 
 
 @app.get("/api/users/")
