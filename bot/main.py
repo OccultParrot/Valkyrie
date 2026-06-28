@@ -63,7 +63,7 @@ async def send_button(interaction: Interaction, button: str):
     await interaction.response.send_message("Button sent!", ephemeral=True)
 
 
-@send_button.autocomplete("buttons")
+@send_button.autocomplete("button")
 async def send_button_autocomplete(interaction: Interaction, current: str):
     filtered = [
         b for b in BUTTON_VIEW_DICT.keys() if b.startswith(current)
