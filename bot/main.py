@@ -51,11 +51,12 @@ async def send_embed(interaction: Interaction, title: str, description: str, col
 
 
 @client.tree.command(name="send-button", description="Send a set of buttons as the bot")
-@app_commands.describe(buttons="The buttons to send")
+@app_commands.describe(button="The buttons to send")
 async def send_button(interaction: Interaction, button: str):
     """
     The user picks a button from the autocomplete list, and it sends the buttons in the channel used.
     This is so that the owners (Chebe & Sinna) can send buttons in a prettier way.
+    :param button: The button the user selects
     :param interaction: The discord interaction
     """
     channel = interaction.channel
