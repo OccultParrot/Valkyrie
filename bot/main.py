@@ -1,9 +1,14 @@
 import os
+from typing import Dict
 
 import discord
-import requests
-import dotenv
 from discord import Client, app_commands, Intents, Interaction
+
+from button.verify_view import VerifyView
+
+BUTTON_VIEW_DICT: Dict[str, discord.ui.View] = {
+    "verify account": VerifyView()
+}
 
 
 class Bot(Client):
@@ -39,77 +44,35 @@ async def send_message(interaction: Interaction, message: str):
     await interaction.response.send_message("Message sent!", ephemeral=True)
 
 
+async def send_embed(interaction: Interaction, title: str, description: str, color: discord.Color):
+    embed = discord.Embed(title=title, description=description, color=color)
+    await interaction.channel.send(embed=embed)
+    await interaction.response.send_message(f"Message sent!", ephemeral=True)
+
+
 @client.tree.command(name="send-button", description="Send a set of buttons as the bot")
-async def send_button(interaction: Interaction):
+@app_commands.describe(buttons="The buttons to send")
+async def send_button(interaction: Interaction, button: str):
     """
     The user picks a button from the autocomplete list, and it sends the buttons in the channel used.
     This is so that the owners (Chebe & Sinna) can send buttons in a prettier way.
     :param interaction: The discord interaction
     """
     channel = interaction.channel
-    # TODO: Write the send button command. It should let them pick from a list of buttons.
-    await channel.send("Not done yet lol")
-    await interaction.response.send_message("Button send!", ephemeral=True)
+    await channel.send(view=BUTTON_VIEW_DICT[button])
+    await interaction.response.send_message("Button sent!", ephemeral=True)
 
 
-@client.tree.command(name="link",
-                     description="Link your steam account to the server using either your ID or your profile link")
-@app_commands.describe(link="The link to your steam account", steam_id="The steam account ID")
-async def link_account(interaction: Interaction, link: str = None, steam_id: int = None):
-    """
-    Parses the given link and adds a user with the /users/ endpoint on our API
-    Example link: https://steamcommunity.com/profiles/76561199214551282/
-    and the steam ID is the last section AFTER profiles: 76561199214551282
-    :param link: The link to your steam account
-    :param steam_id: The steam ID
-    :param interaction: The discord interaction
-    """
+@send_button.autocomplete("buttons")
+async def send_button_autocomplete(interaction: Interaction, current: str):
+    filtered = [
+        b for b in BUTTON_VIEW_DICT.keys() if b.startswith(current)
+    ]
 
-    if link is None and steam_id is None:
-        await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID")
-
-    await interaction.response.defer()
-    steam_id: int
-    try:
-        if steam_id is None:
-            s = link.split("/")[4]
-            steam_id = int(s)
-    except (IndexError, ValueError) as e:
-        print(f"Invalid link {link} from {interaction.user.name}")
-        response = await interaction.original_response()
-        await response.edit(
-            content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/**XXXXXXXXXXXXXX**/")
-        return
-
-    response = requests.post(
-        os.environ["BACKEND_URL"] + "users/",
-        json={
-            "steam_id": steam_id,
-            "discord_id": interaction.user.id
-        })
-
-    if response.status_code == 404:
-        print(response.text)
-        print(response.json())
-        print(f"No user of steam ID {steam_id}")
-        response = await interaction.original_response()
-        await response.edit(content=f"No user with steam ID: {steam_id}")
-        return
-
-    if response.status_code != 200:
-        response = await interaction.original_response()
-        await response.edit(content=f"Failed to link steam account {steam_id}")
-        print(f"Failed to link steam account {steam_id}")
-        return
-
-    data = response.json()
-
-    await interaction.user.add_roles(discord.Object(id=1517323532621578402))
-    await interaction.user.edit(nick=data["steam_name"])
-
-    print(f"Linked steam account {steam_id} -> {interaction.user.id}")
-    response = await interaction.original_response()
-    await response.edit(content=f"Successfully linked steam account {steam_id}!")
+    return [
+        app_commands.Choice(name=b.title(), value=b)
+        for b in filtered[:25]
+    ]
 
 
 if __name__ == "__main__":

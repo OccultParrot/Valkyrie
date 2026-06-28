@@ -1,0 +1,115 @@
+import os
+
+import discord
+from discord import Interaction
+import requests
+import dotenv
+
+dotenv.load_dotenv()
+
+
+class LinkModal(discord.ui.Modal, title="Link Steam Account"):
+    def __init__(self, callback: callable):
+        super().__init__()
+        self.callback = callback
+        self.link_input = discord.ui.TextInput(
+            label="Steam Profile Link",
+            placeholder="https://steamcommunity.com/profiles/XXXXXXXXXXXXXX/",
+            required=True
+        )
+        self.add_item(self.link_input)
+
+    async def on_submit(self, interaction: Interaction):
+        await self.callback(interaction, link=self.link_input.value)
+
+
+class IDModal(discord.ui.Modal, title="Link Steam Account"):
+    def __init__(self, callback: callable):
+        super().__init__()
+        self.callback = callback
+        self.id_input = discord.ui.TextInput(
+            label="Steam Profile ID",
+            placeholder="76561199214551282",
+            required=True
+        )
+        self.add_item(self.id_input)
+
+    async def on_submit(self, interaction: Interaction):
+        await self.callback(interaction, steam_id=int(self.id_input.value))
+
+
+class VerifyView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        self.link_button = discord.ui.Button(
+            style=discord.ButtonStyle.success,
+            label="Use Steam Profile Link"
+        )
+        self.id_button = discord.ui.Button(
+            style=discord.ButtonStyle.success,
+            label="Use Steam Profile ID"
+        )
+        self.add_item(self.link_button)
+        self.add_item(self.id_button)
+
+    async def link_callback(self, interaction: Interaction):
+        await interaction.response.send_modal(modal=LinkModal(self.link_account))
+
+    async def id_callback(self, interaction: Interaction):
+        await interaction.response.send_modal(modal=IDModal(self.link_account))
+
+    @staticmethod
+    async def link_account(interaction: Interaction, link: str = None, steam_id: int = None):
+        """
+        Parses the given link and adds a user with the /users/ endpoint on our API
+        Example link: https://steamcommunity.com/profiles/76561199214551282/
+        and the steam ID is the last section AFTER profiles: 76561199214551282
+        :param link: The link to your steam account
+        :param steam_id: The steam ID
+        :param interaction: The discord interaction
+        """
+
+        if link is None and steam_id is None:
+            await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID", ephemeral=True)
+
+        await interaction.response.defer(ephemeral=True)
+        steam_id: int
+        try:
+            if steam_id is None:
+                s = link.split("/")[4]
+                steam_id = int(s)
+        except (IndexError, ValueError) as e:
+            print(f"Invalid link {link} from {interaction.user.name}")
+            response = await interaction.original_response()
+            await response.edit(
+                content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/XXXXXXXXXXXXXX/")
+            return
+
+        response = requests.post(
+            os.environ["BACKEND_URL"] + "users/",
+            json={
+                "steam_id": steam_id,
+                "discord_id": interaction.user.id
+            })
+
+        if response.status_code == 404:
+            print(f"No user of steam ID {steam_id}")
+            response = await interaction.original_response()
+            await response.edit(content=f"No user with steam ID: {steam_id}")
+            return
+
+        if response.status_code != 200:
+            response = await interaction.original_response()
+            await response.edit(content=f"Failed to link steam account {steam_id}")
+            print(f"Failed to link steam account {steam_id}")
+            return
+
+        data = response.json()
+
+        await interaction.user.add_roles(discord.Object(id=1517323532621578402))
+        if not interaction.user.get_role(1517389443642953778):
+            await interaction.user.edit(nick=data["steam_name"])
+
+        print(f"Linked steam account {steam_id} -> {interaction.user.id}")
+        response = await interaction.original_response()
+        await response.edit(content=f"Successfully linked steam account {steam_id}!")
