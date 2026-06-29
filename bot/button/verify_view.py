@@ -37,28 +37,17 @@ class IDModal(discord.ui.Modal, title="Link Steam Account"):
     async def on_submit(self, interaction: Interaction):
         await self.callback(interaction, steam_id=int(self.id_input.value))
 
-
 class VerifyView(discord.ui.View):
     def __init__(self):
-        super().__init__()
-        self.link_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
-            label="Use Steam Profile Link"
-        )
-        self.id_button = discord.ui.Button(
-            style=discord.ButtonStyle.success,
-            label="Use Steam Profile ID"
-        )
-        self.link_button.callback = self.link_callback
-        self.id_button.callback = self.id_callback
-        self.add_item(self.link_button)
-        self.add_item(self.id_button)
+        super().__init__(timeout=None)  # Prevents the view from expiring
 
-    async def link_callback(self, interaction: Interaction):
-        await interaction.response.send_modal(modal=LinkModal(self.link_account))
+    @discord.ui.button(label="Use Steam Profile Link", style=discord.ButtonStyle.success, custom_id="link_button")
+    async def link_callback(self, interaction: Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(LinkModal(self.link_account))
 
-    async def id_callback(self, interaction: Interaction):
-        await interaction.response.send_modal(modal=IDModal(self.link_account))
+    @discord.ui.button(label="Use Steam Profile ID", style=discord.ButtonStyle.success, custom_id="id_button")
+    async def id_callback(self, interaction: Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(IDModal(self.link_account))
 
     @staticmethod
     async def link_account(interaction: Interaction, link: str = None, steam_id: int = None):
@@ -72,7 +61,8 @@ class VerifyView(discord.ui.View):
         """
 
         if link is None and steam_id is None:
-            await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID", ephemeral=True)
+            await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID",
+                                                    ephemeral=True)
 
         await interaction.response.defer(ephemeral=True)
         steam_id: int
