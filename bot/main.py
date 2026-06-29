@@ -7,7 +7,7 @@ from discord import Client, app_commands, Intents, Interaction
 from button.verify_view import VerifyView
 
 BUTTON_VIEW_DICT: Dict[str, discord.ui.View] = {
-    "verify account": VerifyView()
+    "verify account": VerifyView
 }
 
 
@@ -19,6 +19,7 @@ class Bot(Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
+        self.add_view(VerifyView())
         print("Syncing Command Tree...")
         await self.tree.sync()
 
@@ -60,7 +61,7 @@ async def send_button(interaction: Interaction, button: str):
     :param interaction: The discord interaction
     """
     channel = interaction.channel
-    await channel.send(view=BUTTON_VIEW_DICT[button])
+    await channel.send(view=BUTTON_VIEW_DICT[button]())
     await interaction.response.send_message("Button sent!", ephemeral=True)
 
 
