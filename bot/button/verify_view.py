@@ -49,6 +49,8 @@ class VerifyView(discord.ui.View):
             style=discord.ButtonStyle.success,
             label="Use Steam Profile ID"
         )
+        self.link_button.callback = self.link_callback
+        self.id_button.callback = self.id_callback
         self.add_item(self.link_button)
         self.add_item(self.id_button)
 
