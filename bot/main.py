@@ -1,12 +1,12 @@
 import os
-from typing import Dict
+from typing import Dict, Type
 
 import discord
 from discord import Client, app_commands, Intents, Interaction
 
 from button.verify_view import VerifyView
 
-BUTTON_VIEW_DICT: Dict[str, discord.ui.View] = {
+BUTTON_VIEW_DICT: Dict[str, Type[discord.ui.View]] = {
     "verify account": VerifyView
 }
 

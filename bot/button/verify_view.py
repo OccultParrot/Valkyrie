@@ -37,6 +37,7 @@ class IDModal(discord.ui.Modal, title="Link Steam Account"):
     async def on_submit(self, interaction: Interaction):
         await self.callback(interaction, steam_id=int(self.id_input.value))
 
+
 class VerifyView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)  # Prevents the view from expiring
@@ -63,6 +64,7 @@ class VerifyView(discord.ui.View):
         if link is None and steam_id is None:
             await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID",
                                                     ephemeral=True)
+            return
 
         await interaction.response.defer(ephemeral=True)
         steam_id: int
@@ -72,9 +74,10 @@ class VerifyView(discord.ui.View):
                 steam_id = int(s)
         except (IndexError, ValueError) as e:
             print(f"Invalid link {link} from {interaction.user.name}")
-            response = await interaction.original_response()
-            await response.edit(
-                content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/XXXXXXXXXXXXXX/")
+            await interaction.followup.send(
+                content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/XXXXXXXXXXXXXX/",
+                ephemeral=True
+            )
             return
 
         response = requests.post(
@@ -86,13 +89,11 @@ class VerifyView(discord.ui.View):
 
         if response.status_code == 404:
             print(f"No user of steam ID {steam_id}")
-            response = await interaction.original_response()
-            await response.edit(content=f"No user with steam ID: {steam_id}")
+            await interaction.followup.send(content=f"No user with steam ID: {steam_id}", ephemeral=True)
             return
 
         if response.status_code != 200:
-            response = await interaction.original_response()
-            await response.edit(content=f"Failed to link steam account {steam_id}")
+            await interaction.followup.send(content=f"Failed to link steam account {steam_id}", ephemeral=True)
             print(f"Failed to link steam account {steam_id}")
             return
 
@@ -103,5 +104,4 @@ class VerifyView(discord.ui.View):
             await interaction.user.edit(nick=data["steam_name"])
 
         print(f"Linked steam account {steam_id} -> {interaction.user.id}")
-        response = await interaction.original_response()
-        await response.edit(content=f"Successfully linked steam account {steam_id}!")
+        await interaction.followup.send(content=f"Successfully linked steam account {steam_id}!", ephemeral=True)
