@@ -8,6 +8,14 @@ import dotenv
 dotenv.load_dotenv()
 
 
+def error_embed(description: str) -> discord.Embed:
+    return discord.Embed(description=description, color=discord.Color.red())
+
+
+def success_embed(description: str) -> discord.Embed:
+    return discord.Embed(description=description, color=discord.Color.green())
+
+
 class LinkModal(discord.ui.Modal, title="Link Steam Account"):
     def __init__(self, callback: callable):
         super().__init__()
@@ -62,8 +70,10 @@ class VerifyView(discord.ui.View):
         """
 
         if link is None and steam_id is None:
-            await interaction.response.send_message(f"You need to supply either your profile link OR your steam ID",
-                                                    ephemeral=True)
+            await interaction.response.send_message(
+                embed=error_embed("You need to supply either your profile link OR your steam ID"),
+                ephemeral=True
+            )
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -75,7 +85,8 @@ class VerifyView(discord.ui.View):
         except (IndexError, ValueError) as e:
             print(f"Invalid link {link} from {interaction.user.name}")
             await interaction.followup.send(
-                content=f"Invalid link {link}. The link should look like https://steamcommunity.com/profiles/XXXXXXXXXXXXXX/",
+                embed=error_embed(
+                    f"Invalid link `{link}`.\nThe link should look like `https://steamcommunity.com/profiles/XXXXXXXXXXXXXX/`"),
                 ephemeral=True
             )
             return
@@ -89,11 +100,17 @@ class VerifyView(discord.ui.View):
 
         if response.status_code == 404:
             print(f"No user of steam ID {steam_id}")
-            await interaction.followup.send(content=f"No user with steam ID: {steam_id}", ephemeral=True)
+            await interaction.followup.send(
+                embed=error_embed(f"No user found with steam ID: `{steam_id}`"),
+                ephemeral=True
+            )
             return
 
         if response.status_code != 200:
-            await interaction.followup.send(content=f"Failed to link steam account {steam_id}", ephemeral=True)
+            await interaction.followup.send(
+                embed=error_embed(f"Failed to link steam account `{steam_id}`"),
+                ephemeral=True
+            )
             print(f"Failed to link steam account {steam_id}")
             return
 
@@ -104,4 +121,7 @@ class VerifyView(discord.ui.View):
             await interaction.user.edit(nick=data["steam_name"])
 
         print(f"Linked steam account {steam_id} -> {interaction.user.id}")
-        await interaction.followup.send(content=f"Successfully linked steam account {steam_id}!", ephemeral=True)
+        await interaction.followup.send(
+            embed=success_embed(f"Successfully linked steam account `{steam_id}`!"),
+            ephemeral=True
+        )
