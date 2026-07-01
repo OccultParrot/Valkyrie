@@ -98,12 +98,41 @@ class VerifyView(discord.ui.View):
                 "discord_id": interaction.user.id
             })
 
+        # discord_id already exists -> look them up and re-verify with the new steam_id instead
+        if response.status_code == 409:
+            lookup_response = requests.get(
+                os.environ["BACKEND_URL"] + "users/lookup",
+                params={"discord_id": interaction.user.id}
+            )
+
+            if lookup_response.status_code != 200:
+                await interaction.followup.send(
+                    embed=error_embed(f"Failed to link steam account `{steam_id}`"),
+                    ephemeral=True
+                )
+                print(f"Failed to look up existing user for re-verify: {interaction.user.id}")
+                return
+
+            user_id = lookup_response.json()["id"]
+            response = requests.patch(
+                os.environ["BACKEND_URL"] + f"users/{user_id}/verify",
+                params={"steam_id": steam_id}
+            )
+
         if response.status_code == 404:
             print(f"No user of steam ID {steam_id}")
             await interaction.followup.send(
                 embed=error_embed(f"No user found with steam ID: `{steam_id}`"),
                 ephemeral=True
             )
+            return
+
+        if response.status_code == 409:
+            await interaction.followup.send(
+                embed=error_embed(f"This Steam account `{steam_id}` is already linked to another user"),
+                ephemeral=True
+            )
+            print(f"Steam ID {steam_id} already linked to another user")
             return
 
         if response.status_code != 200:

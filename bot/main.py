@@ -6,10 +6,12 @@ import requests
 import discord
 from discord import Client, app_commands, Intents, Interaction
 
+from button.claim_view import ClaimView
 from button.verify_view import VerifyView
 
 BUTTON_VIEW_DICT: Dict[str, Type[discord.ui.View]] = {
-    "verify account": VerifyView
+    "verify account": VerifyView,
+    "claim and balance": ClaimView
 }
 
 

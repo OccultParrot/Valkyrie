@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone, timedelta
 from typing import Annotated, Sequence, cast
 
 import requests
@@ -16,6 +17,9 @@ app = FastAPI()
 
 engine = create_engine(os.environ['DATABASE_URL'])
 
+DAILY_AMOUNT = 10
+DAILY_COOLDOWN = timedelta(hours=24)
+
 
 def get_session():
     with Session(engine) as session:
@@ -25,25 +29,71 @@ def get_session():
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-@app.post("/api/users/")
-def create_user(user: User, session: SessionDep):
-    user_name = get_steam_user(user.steam_id)
-    if user_name is None:
-        raise HTTPException(status_code=404, detail="User not found")
-
+@app.post("/api/users/", status_code=201)
+def create_user(user: User, session: SessionDep) -> User:
     existing_user = session.exec(select(User).where(User.discord_id == user.discord_id)).first()
     if existing_user:
-        existing_user.steam_id = user.steam_id
-        existing_user.steam_name = user_name
-        existing_user.balance = user.balance
-        session.add(existing_user)
-    else:
-        user.steam_name = user_name
-        session.add(user)
+        raise HTTPException(status_code=409, detail="User already exists, use PATCH to update")
 
+    steam_taken = session.exec(select(User).where(User.steam_id == user.steam_id)).first()
+    if steam_taken:
+        raise HTTPException(status_code=409, detail="This Steam account is already linked to another user")
+
+    user_name = get_steam_user(user.steam_id)
+    if user_name is None:
+        raise HTTPException(status_code=404, detail="Steam user not found")
+
+    user.steam_name = user_name
+    session.add(user)
     session.commit()
-    session.refresh(existing_user if existing_user else user)
-    return existing_user if existing_user else user
+    session.refresh(user)
+    return user
+
+
+@app.patch("/api/users/{user_id}/verify")
+def verify_user(user_id: int, steam_id: int, session: SessionDep) -> User:
+    user = cast(User | None, session.get(User, user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    steam_taken = session.exec(
+        select(User).where(User.steam_id == steam_id, User.id != user_id)
+    ).first()
+    if steam_taken:
+        raise HTTPException(status_code=409, detail="This Steam account is already linked to another user")
+
+    user_name = get_steam_user(steam_id)
+    if user_name is None:
+        raise HTTPException(status_code=404, detail="Steam user not found")
+
+    user.steam_id = steam_id
+    user.steam_name = user_name
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+@app.patch("/api/users/{user_id}/claim")
+def claim_daily(user_id: int, session: SessionDep) -> User:
+    user = cast(User | None, session.get(User, user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    now = datetime.now(timezone.utc)
+    if user.last_daily is not None and now - user.last_daily < DAILY_COOLDOWN:
+        remaining = DAILY_COOLDOWN - (now - user.last_daily)
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily already claimed, try again in {remaining}",
+        )
+
+    user.balance += DAILY_AMOUNT
+    user.last_daily = now
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
 
 
 @app.get("/api/users/")
