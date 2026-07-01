@@ -1,3 +1,4 @@
+import math
 import os
 from typing import Dict, Type
 
@@ -79,13 +80,35 @@ async def send_button_autocomplete(interaction: Interaction, current: str):
 
 
 @client.tree.command(name="list-verified", description="List all verified users")
-async def list_verified_users(interaction: Interaction):
+@app_commands.describe(page="The page number to view, default 1")
+async def list_verified_users(interaction: Interaction, page: int = 1):
     users = requests.get(os.environ["BACKEND_URL"] + "users/")
     data = users.json()
-    print(data)
-    await interaction.response.send_message("Ok now check logs")
+    pages = math.ceil(len(data) / 10)
+    if page < 1 or page > pages:
+        await interaction.response.send_message(f"Page {page} does not exist. There are only {pages} pages.",
+                                                ephemeral=True)
+        return
+
+    start = (page - 1) * 10
+    end = start + 10
+    u_list = data[start:end]
+    embeds = [get_embed(interaction.guild, u) for u in u_list]
+    if embeds:
+        embeds[-1].set_footer(text=f"Page {page}/{pages}")
+
+    await interaction.response.send_message(embeds=embeds, ephemeral=True)
+
+
+def get_embed(guild, user) -> discord.Embed:
+    embed = discord.Embed(title=user["steam_name"], color=discord.Color.blurple())
+    embed.add_field(name="ID", value=user["id"])
+    embed.add_field(name="Steam ID", value=user["steam_id"])
+    embed.add_field(name="Discord ID", value=user["discord_id"])
+    embed.add_field(name="Mention", value=guild.get_member(int(user["discord_id"])).mention)
+
+    return embed
 
 
 if __name__ == "__main__":
     client.run(os.environ["DISCORD_TOKEN"])
-
