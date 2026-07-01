@@ -1,6 +1,7 @@
 import os
 from typing import Dict, Type
 
+import requests
 import discord
 from discord import Client, app_commands, Intents, Interaction
 
@@ -77,5 +78,14 @@ async def send_button_autocomplete(interaction: Interaction, current: str):
     ]
 
 
+@client.tree.command(name="list-verified", description="List all verified users")
+async def list_verified_users(interaction: Interaction):
+    users = requests.get(os.environ["BACKEND_URL"] + "users/")
+    data = users.json()
+    print(data)
+    await interaction.response.send_message("Ok now check logs")
+
+
 if __name__ == "__main__":
     client.run(os.environ["DISCORD_TOKEN"])
+
