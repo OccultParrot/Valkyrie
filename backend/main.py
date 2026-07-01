@@ -51,6 +51,23 @@ def get_users(session: SessionDep, offset: int = 0, limit: Annotated[int, Query(
     return users
 
 
+@app.get("/api/users/lookup")
+def lookup_user(session: SessionDep, steam_id: int | None = None, discord_id: int | None = None) -> User:
+    if steam_id is None and discord_id is None:
+        raise HTTPException(status_code=400, detail="Must provide steam_id or discord_id")
+
+    query = select(User)
+    if steam_id is not None:
+        query = query.where(User.steam_id == steam_id)
+    if discord_id is not None:
+        query = query.where(User.discord_id == discord_id)
+
+    user = session.exec(query).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
 @app.get("/api/users/{user_id}")
 def get_user(user_id: int, session: SessionDep) -> User:
     user = cast(User | None, session.get(User, user_id))
