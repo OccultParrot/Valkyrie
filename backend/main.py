@@ -35,6 +35,7 @@ def create_user(user: User, session: SessionDep):
     if existing_user:
         existing_user.steam_id = user.steam_id
         existing_user.steam_name = user_name
+        existing_user.balance = user.balance
         session.add(existing_user)
     else:
         user.steam_name = user_name

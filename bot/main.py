@@ -145,7 +145,7 @@ async def balance(interaction: Interaction):
     embed = discord.Embed(
         title=interaction.user.display_name,
         description=f"Balance: {str(data.get('balance', 0))} dino nuggets",
-        color = discord.Color.gold()
+        color=discord.Color.gold()
     )
 
     await interaction.response.send_message(embed=embed, ephemeral=True)
