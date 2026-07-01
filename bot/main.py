@@ -33,7 +33,8 @@ client = Bot()
 async def on_ready():
     print(f"Logged in as {client.user} | {client.user.id}")
 
-#region Admin Commands
+
+# region Admin Commands
 @client.tree.command(name="send-message", description="Send a message as the bot")
 @app_commands.describe(message="The message to send")
 async def send_message(interaction: Interaction, message: str):
@@ -108,15 +109,49 @@ def get_embed(guild, user) -> discord.Embed:
     embed.add_field(name="Mention", value=guild.get_member(int(user["discord_id"])).mention)
 
     return embed
-#endregion
 
-#region Vendor Commands
-@client.tree.command(name="balance", description="Checks your balance or balance of another user")
-@app_commands.describe(user="The user to check, leave empty to check yourself")
-async def balance(interaction: Interaction, user: discord.Member = None):
-    response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/" + str(user.id))
 
-#endregion
+# endregion
+
+# region Vendor Commands
+@client.tree.command(name="lookup", description="Returns the data of the user")
+@app_commands.describe(user="The user to check")
+async def lookup(interaction: Interaction, user: discord.Member):
+    response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
+    data = response.json()
+    await interaction.response.send_message(str(data))
+
+
+@client.tree.command(name="user-balance", description="Get your balance, or the balance of the user")
+@app_commands.describe(user="The user to check.")
+async def user_balance(interaction: Interaction, user: discord.Member):
+    response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
+    data = response.json()
+
+    embed = discord.Embed(
+        title=interaction.user.display_name,
+        description=f"Balance: {str(data.get('balance', 0))} dino nuggets",
+        color=discord.Color.gold()
+    )
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+@client.tree.command(name="balance", description="Get your balance, or the balance of the user")
+async def balance(interaction: Interaction):
+    response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(interaction.user.id))
+    data = response.json()
+
+    embed = discord.Embed(
+        title=interaction.user.display_name,
+        description=f"Balance: {str(data.get('balance', 0))} dino nuggets",
+        color = discord.Color.gold()
+    )
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+# endregion
 
 if __name__ == "__main__":
     client.run(os.environ["DISCORD_TOKEN"])
