@@ -4,6 +4,7 @@ CREATE TABLE users(
   discord_id BIGINT UNIQUE NOT NULL,
   steam_id BIGINT UNIQUE NOT NULL,
   steam_name TEXT,
+  balance INT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
