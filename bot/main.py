@@ -33,7 +33,7 @@ client = Bot()
 async def on_ready():
     print(f"Logged in as {client.user} | {client.user.id}")
 
-
+#region Admin Commands
 @client.tree.command(name="send-message", description="Send a message as the bot")
 @app_commands.describe(message="The message to send")
 async def send_message(interaction: Interaction, message: str):
@@ -108,7 +108,15 @@ def get_embed(guild, user) -> discord.Embed:
     embed.add_field(name="Mention", value=guild.get_member(int(user["discord_id"])).mention)
 
     return embed
+#endregion
 
+#region Vendor Commands
+@client.tree.command(name="balance", description="Checks your balance or balance of another user")
+@app_commands.describe(user="The user to check, leave empty to check yourself")
+async def balance(interaction: Interaction, user: discord.Member = None):
+    response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/" + str(user.id))
+
+#endregion
 
 if __name__ == "__main__":
     client.run(os.environ["DISCORD_TOKEN"])
