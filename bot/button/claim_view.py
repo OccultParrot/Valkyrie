@@ -4,7 +4,7 @@ import discord
 import requests
 
 
-class ClaimView:
+class ClaimView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
