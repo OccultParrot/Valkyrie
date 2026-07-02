@@ -12,6 +12,7 @@ from bot import Bot
 def init_admin_commands(client: Bot):
     @client.tree.command(name="send-message", description="Send a message as the bot")
     @app_commands.describe(message="The message to send")
+    @app_commands.checks.has_permissions(administrator=True)
     async def send_message(interaction: Interaction, message: str):
         """
         Sends the users message from the bot so that the owners (Chebe & Sinna) can send messages as the bot.
@@ -29,6 +30,7 @@ def init_admin_commands(client: Bot):
 
     @client.tree.command(name="send-buttons", description="Send a set of buttons as the bot")
     @app_commands.describe(button="The buttons to send")
+    @app_commands.checks.has_permissions(administrator=True)
     async def send_button(interaction: Interaction, button: str):
         """
         The user picks a buttons from the autocomplete list, and it sends the buttons in the channel used.
@@ -51,8 +53,17 @@ def init_admin_commands(client: Bot):
             for b in filtered[:25]
         ]
 
+    @client.tree.command(name="lookup", description="Returns the data of the user")
+    @app_commands.describe(user="The user to check")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def lookup(interaction: Interaction, user: discord.Member):
+        response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
+        data = response.json()
+        await interaction.response.send_message(get_embed(interaction.guild, data), ephemeral=True)
+
     @client.tree.command(name="list-verified", description="List all verified users")
     @app_commands.describe(page="The page number to view, default 1")
+    @app_commands.checks.has_permissions(administrator=True)
     async def list_verified_users(interaction: Interaction, page: int = 1):
         users = requests.get(os.environ["BACKEND_URL"] + "users/")
         data = users.json()
@@ -73,9 +84,13 @@ def init_admin_commands(client: Bot):
 
     def get_embed(guild, user) -> discord.Embed:
         embed = discord.Embed(title=user["steam_name"], color=discord.Color.blurple())
-        embed.add_field(name="ID", value=user["id"])
-        embed.add_field(name="Steam ID", value=user["steam_id"])
-        embed.add_field(name="Discord ID", value=user["discord_id"])
-        embed.add_field(name="Mention", value=guild.get_member(int(user["discord_id"])).mention)
+        for key, value in user.items():
+            if key == "steam_name":
+                continue
+
+            if key == "discord_id":
+                value = guild.get_member(value).mention
+
+            embed.add_field(name=key, value=value, inline=False)
 
         return embed

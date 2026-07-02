@@ -8,15 +8,9 @@ from bot import Bot
 
 
 def init_vendor_commands(client: Bot):
-    @client.tree.command(name="lookup", description="Returns the data of the user")
-    @app_commands.describe(user="The user to check")
-    async def lookup(interaction: Interaction, user: discord.Member):
-        response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
-        data = response.json()
-        await interaction.response.send_message(str(data))
-
     @client.tree.command(name="user-balance", description="Get your balance, or the balance of the user")
     @app_commands.describe(user="The user to check.")
+    @app_commands.checks.has_permissions(administrator=True)
     async def user_balance(interaction: Interaction, user: discord.Member):
         response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
         data = response.json()
@@ -44,6 +38,7 @@ def init_vendor_commands(client: Bot):
 
     @client.tree.command(name="withdraw", description="Withdraw nuggets from the user")
     @app_commands.describe(user="The user to withdraw", amount="The amount to withdraw")
+    @app_commands.checks.has_permissions(administrator=True)
     async def withdraw(interaction: Interaction, user: discord.Member, amount: int):
         response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
         if response.status_code == 404:
@@ -76,6 +71,7 @@ def init_vendor_commands(client: Bot):
 
     @client.tree.command(name="deposit", description="Deposit nuggets to the user")
     @app_commands.describe(user="The user to deposit", amount="The amount to deposit")
+    @app_commands.checks.has_permissions(administrator=True)
     async def deposit(interaction: Interaction, user: discord.Member, amount: int):
         response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
         if response.status_code == 404:
