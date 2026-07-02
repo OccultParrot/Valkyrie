@@ -22,7 +22,7 @@ class ClaimView(discord.ui.View):
             return
 
         user_id = lookup_response.json()["id"]
-        claim_response = requests.patch(f"{os.environ['BACKEND_URL']}/users/{user_id}/claim")
+        claim_response = requests.patch(f"{os.environ['BACKEND_URL']}users/{user_id}/claim")
 
         if claim_response.status_code == 429:
             await interaction.response.send_message(claim_response.json()["detail"])
