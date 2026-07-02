@@ -1,13 +1,8 @@
-import math
 import os
-from typing import Dict, Type
 
-import requests
 import discord
-from discord import Client, app_commands, Intents, Interaction
-
-from buttons.claim_view import ClaimView
-from buttons.verify_view import VerifyView
+import requests
+from discord import app_commands, Interaction
 
 
 def init_vendor_commands(client: discord.Client):

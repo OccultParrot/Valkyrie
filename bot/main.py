@@ -1,10 +1,6 @@
-import math
 import os
-from typing import Dict, Type
 
-import requests
-import discord
-from discord import Client, app_commands, Intents, Interaction
+from discord import Client, app_commands, Intents
 
 import buttons
 import commands

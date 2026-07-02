@@ -1,9 +1,9 @@
 import os
 
 import discord
-from discord import Interaction
-import requests
 import dotenv
+import requests
+from discord import Interaction
 
 dotenv.load_dotenv()
 

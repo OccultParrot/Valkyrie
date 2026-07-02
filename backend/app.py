@@ -1,8 +1,8 @@
 import dotenv
 from fastapi import FastAPI
 
-from routes.users import router as users_router
 from middleware.logging import log_requests
+from routes.users import router as users_router
 
 dotenv.load_dotenv()
 

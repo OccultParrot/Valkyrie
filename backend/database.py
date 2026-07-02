@@ -1,9 +1,9 @@
 import os
+from typing import Annotated
 
+from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlmodel import Session
-from typing import Annotated
-from fastapi import Depends
 
 engine = create_engine(os.environ['DATABASE_URL'])
 
