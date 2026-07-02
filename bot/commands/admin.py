@@ -60,7 +60,7 @@ def init_admin_commands(client: Bot):
     async def lookup(interaction: Interaction, user: discord.Member):
         response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
         data = response.json()
-        await interaction.response.send_message(get_embed(interaction.guild, data), ephemeral=True)
+        await interaction.response.send_message(embed=get_embed(interaction.guild, data), ephemeral=True)
 
     @client.tree.command(name="list-verified", description="List all verified users")
     @app_commands.describe(page="The page number to view, default 1")
@@ -84,15 +84,18 @@ def init_admin_commands(client: Bot):
         await interaction.response.send_message(embeds=embeds, ephemeral=True)
 
     def get_embed(guild, user) -> discord.Embed:
-        embed = discord.Embed(title=user["steam_name"], color=discord.Color.blurple())
+        member = guild.get_member(user["discord_id"])
+        color = member.top_role.color if member and member.top_role.color.value != 0 else discord.Color.blurple()
+
+        embed = discord.Embed(title=user["steam_name"], color=color)
         for key, value in user.items():
             if key == "steam_name":
                 continue
 
             if key == "discord_id":
-                value = guild.get_member(value).mention
+                value = member.mention if member else value
 
-            if key in ("created_at", "last_daily", "updated_at") and value is not None:
+            if key in ("created_at", "last_daily") and value is not None:
                 dt = datetime.fromisoformat(value)
                 value = f"<t:{int(dt.timestamp())}:R>"
 
