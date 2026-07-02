@@ -8,7 +8,7 @@ from fastapi.params import Query
 from sqlmodel import select
 
 from database import SessionDep
-from models.user_model import User
+from models.user_model import User, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -35,6 +35,23 @@ def create_user(user: User, session: SessionDep) -> User:
     session.commit()
     session.refresh(user)
     return user
+
+@router.patch("/{user_id}")
+def update_user(user_id: int, user_update: UserUpdate, session: SessionDep) -> User:
+    existing_user = session.exec(select(User).where(User.id == user_id)).first()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Only apply fields the client actually included in the request body
+    update_data = user_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(existing_user, key, value)
+
+    session.add(existing_user)
+    session.commit()
+    session.refresh(existing_user)
+    return existing_user
+
 
 
 @router.patch("/{user_id}/verify")
