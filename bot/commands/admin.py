@@ -93,6 +93,8 @@ def init_admin_commands(client: Bot):
                 continue
 
             if key == "discord_id":
+                embed.add_field(name=key, value=value, inline=False)
+                key = "mention"
                 value = member.mention if member else value
 
             if key in ("created_at", "last_daily") and value is not None:
