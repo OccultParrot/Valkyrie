@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Sequence, cast
+from typing import Sequence, cast, Annotated
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -84,7 +84,7 @@ def claim_daily(user_id: int, session: SessionDep) -> User:
 
 
 @router.get("/")
-def get_users(session: SessionDep, offset: int = 0, limit: Query(le=100) = 100) -> Sequence[User]:
+def get_users(session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100) -> Sequence[User]:
     users = session.exec(select(User).offset(offset).limit(limit)).all()
     return users
 
