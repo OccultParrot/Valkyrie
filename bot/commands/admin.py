@@ -1,5 +1,6 @@
 import math
 import os
+import datetime
 
 import discord
 import requests
@@ -90,6 +91,10 @@ def init_admin_commands(client: Bot):
 
             if key == "discord_id":
                 value = guild.get_member(value).mention
+
+            if key in ("created_at", "last_daily", "updated_at") and value is not None:
+                dt = datetime.fromisoformat(value)
+                value = f"<t:{int(dt.timestamp())}:R>"
 
             embed.add_field(name=key, value=value, inline=False)
 
