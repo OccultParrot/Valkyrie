@@ -1,15 +1,15 @@
-import os
 import math
 import os
 
 import discord
 import requests
-from discord import Client, app_commands, Interaction
+from discord import app_commands, Interaction
 
 import buttons
+from bot import Bot
 
 
-def init_admin_commands(client: Client):
+def init_admin_commands(client: Bot):
     @client.tree.command(name="send-message", description="Send a message as the bot")
     @app_commands.describe(message="The message to send")
     async def send_message(interaction: Interaction, message: str):

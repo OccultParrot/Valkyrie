@@ -4,8 +4,10 @@ import discord
 import requests
 from discord import app_commands, Interaction
 
+from bot import Bot
 
-def init_vendor_commands(client: discord.Client):
+
+def init_vendor_commands(client: Bot):
     @client.tree.command(name="lookup", description="Returns the data of the user")
     @app_commands.describe(user="The user to check")
     async def lookup(interaction: Interaction, user: discord.Member):
