@@ -10,7 +10,7 @@ class ClaimView(discord.ui.View):
 
     @discord.ui.button(label="Claim", style=discord.ButtonStyle.success, custom_id="claim_button")
     async def claim_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        lookup_response = requests.get(f"{os.environ['BACKEND_URL']}/users/lookup?discord_id={interaction.user.id}")
+        lookup_response = requests.get(f"{os.environ['BACKEND_URL']}users/lookup?discord_id={interaction.user.id}")
         print(lookup_response.status_code, lookup_response.text)  # temp debug
 
         if lookup_response.status_code == 404:
