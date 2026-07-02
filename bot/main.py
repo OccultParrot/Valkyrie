@@ -24,6 +24,7 @@ class Bot(Client):
 
     async def setup_hook(self) -> None:
         self.add_view(VerifyView())
+        self.add_view(ClaimView())
         print("Syncing Command Tree...")
         await self.tree.sync()
 
