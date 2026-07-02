@@ -1,35 +1,22 @@
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Annotated, Sequence, cast
+from typing import Sequence, cast
 
 import requests
-import dotenv
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.params import Query
-from sqlalchemy import create_engine
-from sqlmodel import Session, select
+from sqlmodel import select
 
+from database import SessionDep
 from models.user_model import User
 
-dotenv.load_dotenv()
-
-app = FastAPI()
-
-engine = create_engine(os.environ['DATABASE_URL'])
+router = APIRouter(prefix="/users", tags=["users"])
 
 DAILY_AMOUNT = 10
 DAILY_COOLDOWN = timedelta(hours=24)
 
 
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
-
-
-@app.post("/api/users/", status_code=201)
+@router.post("/", status_code=201)
 def create_user(user: User, session: SessionDep) -> User:
     existing_user = session.exec(select(User).where(User.discord_id == user.discord_id)).first()
     if existing_user:
@@ -50,7 +37,7 @@ def create_user(user: User, session: SessionDep) -> User:
     return user
 
 
-@app.patch("/api/users/{user_id}/verify")
+@router.patch("/{user_id}/verify")
 def verify_user(user_id: int, steam_id: int, session: SessionDep) -> User:
     user = cast(User | None, session.get(User, user_id))
     if not user:
@@ -74,7 +61,7 @@ def verify_user(user_id: int, steam_id: int, session: SessionDep) -> User:
     return user
 
 
-@app.patch("/api/users/{user_id}/claim")
+@router.patch("/{user_id}/claim")
 def claim_daily(user_id: int, session: SessionDep) -> User:
     user = cast(User | None, session.get(User, user_id))
     if not user:
@@ -96,13 +83,13 @@ def claim_daily(user_id: int, session: SessionDep) -> User:
     return user
 
 
-@app.get("/api/users/")
-def get_users(session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100) -> Sequence[User]:
+@router.get("/")
+def get_users(session: SessionDep, offset: int = 0, limit: Query(le=100) = 100) -> Sequence[User]:
     users = session.exec(select(User).offset(offset).limit(limit)).all()
     return users
 
 
-@app.get("/api/users/lookup")
+@router.get("/lookup")
 def lookup_user(session: SessionDep, steam_id: int | None = None, discord_id: int | None = None) -> User:
     if steam_id is None and discord_id is None:
         raise HTTPException(status_code=400, detail="Must provide steam_id or discord_id")
@@ -119,7 +106,7 @@ def lookup_user(session: SessionDep, steam_id: int | None = None, discord_id: in
     return user
 
 
-@app.get("/api/users/{user_id}")
+@router.get("/{user_id}")
 def get_user(user_id: int, session: SessionDep) -> User:
     user = cast(User | None, session.get(User, user_id))
     if not user:
@@ -127,7 +114,7 @@ def get_user(user_id: int, session: SessionDep) -> User:
     return user
 
 
-@app.delete("/api/users/{user_id}")
+@router.delete("/{user_id}")
 def delete_user(user_id: int, session: SessionDep):
     user = cast(User | None, session.get(User, user_id))
     if not user:
