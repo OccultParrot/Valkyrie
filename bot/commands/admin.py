@@ -1,6 +1,6 @@
 import math
 import os
-import datetime
+from datetime import datetime
 
 import discord
 import requests
