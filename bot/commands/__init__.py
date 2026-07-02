@@ -1,8 +1,9 @@
 import discord
-import vendor
-import admin
+
+from .admin import init_admin_commands
+from .vendor import init_vendor_commands
 
 
 def init_commands(client: discord.Client):
-    vendor.init_vendor_commands(client)
-    admin.init_admin_commands(client)
+    init_vendor_commands(client)
+    init_admin_commands(client)
