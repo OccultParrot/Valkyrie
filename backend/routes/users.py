@@ -16,6 +16,7 @@ DAILY_AMOUNT = 10
 DAILY_COOLDOWN = timedelta(hours=24)
 MAX_BALANCE = 20000
 
+
 @router.post("/", status_code=201)
 def create_user(user: User, session: SessionDep) -> User:
     existing_user = session.exec(select(User).where(User.discord_id == user.discord_id)).first()
@@ -100,6 +101,7 @@ def claim_daily(user_id: int, session: SessionDep) -> User:
     session.commit()
     session.refresh(user)
     return user
+
 
 @router.get("/")
 def get_users(session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100) -> Sequence[User]:
