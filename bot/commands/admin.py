@@ -40,7 +40,7 @@ def init_admin_commands(client: Client):
         await channel.send(view=buttons.BUTTON_VIEW_DICT[button]())
         await interaction.response.send_message("Button sent!", ephemeral=True)
 
-    @send_button.autocomplete("buttons")
+    @send_button.autocomplete("button")
     async def send_button_autocomplete(interaction: Interaction, current: str):
         filtered = [
             b for b in buttons.BUTTON_VIEW_DICT.keys() if b.startswith(current)
