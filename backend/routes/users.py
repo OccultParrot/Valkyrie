@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 DAILY_AMOUNT = 10
 DAILY_COOLDOWN = timedelta(hours=24)
-
+MAX_BALANCE = 20000
 
 @router.post("/", status_code=201)
 def create_user(user: User, session: SessionDep) -> User:
@@ -94,7 +94,7 @@ def claim_daily(user_id: int, session: SessionDep) -> User:
             detail=f"Daily already claimed, try again in {hours}h {minutes}m",
         )
 
-    user.balance += DAILY_AMOUNT
+    user.balance = min(user.balance + DAILY_AMOUNT, MAX_BALANCE)
     user.last_daily = now
     session.add(user)
     session.commit()
