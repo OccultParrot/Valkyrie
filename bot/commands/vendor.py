@@ -74,8 +74,6 @@ def init_vendor_commands(client: Bot):
             ephemeral=True
         )
 
-
-
     @client.tree.command(name="deposit", description="Deposit nuggets to the user")
     @app_commands.describe(user="The user to deposit", amount="The amount to deposit")
     async def deposit(interaction: Interaction, user: discord.Member, amount: int):
@@ -100,4 +98,3 @@ def init_vendor_commands(client: Bot):
             f"Deposited {amount} dino nuggets to {user.mention}. New balance: {new_balance}",
             ephemeral=True
         )
-

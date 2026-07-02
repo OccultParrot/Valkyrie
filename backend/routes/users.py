@@ -36,6 +36,7 @@ def create_user(user: User, session: SessionDep) -> User:
     session.refresh(user)
     return user
 
+
 @router.patch("/{user_id}")
 def update_user(user_id: int, user_update: UserUpdate, session: SessionDep) -> User:
     existing_user = session.exec(select(User).where(User.id == user_id)).first()
@@ -51,7 +52,6 @@ def update_user(user_id: int, user_update: UserUpdate, session: SessionDep) -> U
     session.commit()
     session.refresh(existing_user)
     return existing_user
-
 
 
 @router.patch("/{user_id}/verify")
@@ -87,9 +87,11 @@ def claim_daily(user_id: int, session: SessionDep) -> User:
     now = datetime.now(timezone.utc)
     if user.last_daily is not None and now - user.last_daily < DAILY_COOLDOWN:
         remaining = DAILY_COOLDOWN - (now - user.last_daily)
+        hours, remainder = divmod(int(remaining.total_seconds()), 3600)
+        minutes = remainder // 60
         raise HTTPException(
             status_code=429,
-            detail=f"Daily already claimed, try again in {remaining}",
+            detail=f"Daily already claimed, try again in {hours}h {minutes}m",
         )
 
     user.balance += DAILY_AMOUNT
@@ -98,7 +100,6 @@ def claim_daily(user_id: int, session: SessionDep) -> User:
     session.commit()
     session.refresh(user)
     return user
-
 
 @router.get("/")
 def get_users(session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100) -> Sequence[User]:

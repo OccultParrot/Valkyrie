@@ -24,6 +24,7 @@ class User(SQLModel, table=True):
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
 
+
 class UserUpdate(SQLModel):
     discord_id: int | None = None
     steam_id: int | None = None
