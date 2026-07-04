@@ -60,7 +60,7 @@ def init_admin_commands(client: Bot):
     async def lookup(interaction: Interaction, user: discord.Member):
         response = requests.get(os.environ["BACKEND_URL"] + "users/lookup/?discord_id=" + str(user.id))
         data = response.json()
-        await interaction.response.send_message(embed=get_embed(interaction.guild, data), ephemeral=True)
+        await interaction.response.send_message(embed=get_lookup_embed(interaction.guild, data), ephemeral=True)
 
     @client.tree.command(name="list-verified", description="List all verified users")
     @app_commands.describe(page="The page number to view, default 1")
@@ -77,30 +77,32 @@ def init_admin_commands(client: Bot):
         start = (page - 1) * 10
         end = start + 10
         u_list = data[start:end]
-        embeds = [get_embed(interaction.guild, u) for u in u_list]
+        embeds = [get_lookup_embed(interaction.guild, u) for u in u_list]
         if embeds:
             embeds[-1].set_footer(text=f"Page {page}/{pages}")
 
         await interaction.response.send_message(embeds=embeds, ephemeral=True)
 
-    def get_embed(guild, user) -> discord.Embed:
-        member = guild.get_member(user["discord_id"])
-        color = member.top_role.color if member and member.top_role.color.value != 0 else discord.Color.blurple()
 
-        embed = discord.Embed(title=user["steam_name"], color=color)
-        for key, value in user.items():
-            if key == "steam_name":
-                continue
+def get_lookup_embed(guild, user) -> discord.Embed:
+    member = guild.get_member(user["discord_id"])
+    color = member.top_role.color if member and member.top_role.color.value != 0 else discord.Color.blurple()
 
-            if key == "discord_id":
-                embed.add_field(name=key, value=value, inline=False)
-                key = "mention"
-                value = member.mention if member else value
+    embed = discord.Embed(title=user["steam_name"], color=color)
+    for key, value in user.items():
+        if key == "steam_name":
+            continue
 
-            if key in ("created_at", "last_daily") and value is not None:
-                dt = datetime.fromisoformat(value)
-                value = f"<t:{int(dt.timestamp())}:R>"
-
+        if key == "discord_id":
             embed.add_field(name=key, value=value, inline=False)
+            # Adding extra field for mentions
+            key = "mention"
+            value = member.mention if member else value
 
-        return embed
+        if key in ("created_at", "last_daily", "updated_at") and value is not None:
+            dt = datetime.fromisoformat(value)
+            value = f"<t:{int(dt.timestamp())}:R>"
+
+        embed.add_field(name=key, value=value, inline=False)
+
+    return embed
