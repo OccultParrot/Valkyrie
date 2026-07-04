@@ -1,6 +1,6 @@
 from discord import Client, app_commands, Intents
 
-import buttons
+import views
 
 
 class Bot(Client):
@@ -11,7 +11,7 @@ class Bot(Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
-        for view in buttons.BUTTON_VIEW_DICT.values():
+        for view in views.BUTTON_VIEW_DICT.values():
             self.add_view(view())
 
         print("Syncing Command Tree...")

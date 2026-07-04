@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime
-from sqlmodel import SQLModel, Field, BIGINT
+from sqlmodel import SQLModel, Field, BIGINT, Column, DateTime
 
 
 class User(SQLModel, table=True):

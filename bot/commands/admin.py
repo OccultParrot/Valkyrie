@@ -6,7 +6,7 @@ import discord
 import requests
 from discord import app_commands, Interaction
 
-import buttons
+import views
 from bot import Bot
 
 
@@ -29,24 +29,24 @@ def init_admin_commands(client: Bot):
         await interaction.channel.send(embed=embed)
         await interaction.response.send_message(f"Message sent!", ephemeral=True)
 
-    @client.tree.command(name="send-buttons", description="Send a set of buttons as the bot")
-    @app_commands.describe(button="The buttons to send")
+    @client.tree.command(name="send-views", description="Send a set of views as the bot")
+    @app_commands.describe(button="The views to send")
     @app_commands.checks.has_permissions(administrator=True)
     async def send_button(interaction: Interaction, button: str):
         """
-        The user picks a buttons from the autocomplete list, and it sends the buttons in the channel used.
-        This is so that the owners (Chebe & Sinna) can send buttons in a prettier way.
-        :param button: The buttons the user selects
+        The user picks a views from the autocomplete list, and it sends the views in the channel used.
+        This is so that the owners (Chebe & Sinna) can send views in a prettier way.
+        :param button: The views the user selects
         :param interaction: The discord interaction
         """
         channel = interaction.channel
-        await channel.send(view=buttons.BUTTON_VIEW_DICT[button]())
+        await channel.send(view=views.BUTTON_VIEW_DICT[button]())
         await interaction.response.send_message("Button sent!", ephemeral=True)
 
     @send_button.autocomplete("button")
     async def send_button_autocomplete(interaction: Interaction, current: str):
         filtered = [
-            b for b in buttons.BUTTON_VIEW_DICT.keys() if b.startswith(current)
+            b for b in views.BUTTON_VIEW_DICT.keys() if b.startswith(current)
         ]
 
         return [
