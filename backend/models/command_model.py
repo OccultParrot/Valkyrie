@@ -6,4 +6,4 @@ class Announcement(SQLModel):
 
 class DirectMessage(SQLModel):
     message: str
-    target: int
+    target: str
